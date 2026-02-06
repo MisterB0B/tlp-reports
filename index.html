@@ -47,8 +47,8 @@
       transition: opacity 0.4s;
     }
     #splash.hidden { opacity: 0; pointer-events: none; }
-    #splash .icon { font-size: 64px; margin-bottom: 16px; }
-    #splash .title { font-size: 24px; font-weight: 700; }
+    #splash img { max-width: 80%; max-height: 30vh; }
+    #splash .title { font-size: 16px; font-weight: 500; color: var(--text-dim); }
     
     /* Header */
     .header {
@@ -396,8 +396,8 @@
 <body>
   <!-- Splash -->
   <div id="splash">
-    <div class="icon">📊</div>
-    <div class="title">Loading Reports...</div>
+    <img src="logo.jpg" alt="The Light Park Reports" style="max-width: 80%; max-height: 30vh;">
+    <div class="title" style="margin-top: 16px;">Loading Reports...</div>
   </div>
 
   <!-- Header -->
