@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script>const TLP_SUPABASE_URL='https://gwjtfcrgpxclixonogpe.supabase.co';const TLP_SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3anRmY3JncHhjbGl4b25vZ3BlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMzQzOTUsImV4cCI6MjA4NTkxMDM5NX0.qM1-_VA1Dsx_nsWkeoAJvNWNgSuuwApPBGoJU32X3-I';const APP_NAME='tlp_reports';window.CloudSync={online:navigator.onLine,async save(k,d){localStorage.setItem(APP_NAME+'_'+k,JSON.stringify(d));if(!this.online)return{synced:false};try{const e=await fetch(TLP_SUPABASE_URL+'/rest/v1/app_data?app_data=eq.'+APP_NAME+'&data_key=eq.'+k+'&select=id',{headers:{apikey:TLP_SUPABASE_KEY,Authorization:'Bearer '+TLP_SUPABASE_KEY}}).then(r=>r.json());const m=e.length>0?'PATCH':'POST';const u=e.length>0?TLP_SUPABASE_URL+'/rest/v1/app_data?id=eq.'+e[0].id:TLP_SUPABASE_URL+'/rest/v1/app_data';await fetch(u,{method:m,headers:{apikey:TLP_SUPABASE_KEY,Authorization:'Bearer '+TLP_SUPABASE_KEY,'Content-Type':'application/json'},body:JSON.stringify(e.length>0?{data:d}:{app_data:APP_NAME,data_key:k,data:d})});return{synced:true};}catch(x){return{synced:false};}},async load(k){if(this.online){try{const r=await fetch(TLP_SUPABASE_URL+'/rest/v1/app_data?app_data=eq.'+APP_NAME+'&data_key=eq.'+k+'&select=data',{headers:{apikey:TLP_SUPABASE_KEY,Authorization:'Bearer '+TLP_SUPABASE_KEY}}).then(r=>r.json());if(r.length>0){localStorage.setItem(APP_NAME+'_'+k,JSON.stringify(r[0].data));return r[0].data;}}catch(x){}}const l=localStorage.getItem(APP_NAME+'_'+k);return l?JSON.parse(l):null;},async loadFrom(sourceApp,k){if(!this.online)return null;try{const r=await fetch(TLP_SUPABASE_URL+'/rest/v1/app_data?app_data=eq.'+sourceApp+'&data_key=eq.'+k+'&select=data',{headers:{apikey:TLP_SUPABASE_KEY,Authorization:'Bearer '+TLP_SUPABASE_KEY}}).then(r=>r.json());if(r.length>0)return r[0].data;}catch(x){}return null;}};window.addEventListener('online',()=>CloudSync.online=true);window.addEventListener('offline',()=>CloudSync.online=false);</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <!-- Unified Cloud Sync -->
+    <script src="https://thelightparkops.com/shared/cloud-sync.js"></script>
+    <title>Reports | The Light Park</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg: #0B0D14;
+      --surface: #12151f;
+      --surface2: #1a1e2e;
+      --border: #2a2e3e;
+      --text: #f0f0f5;
+      --text-dim: #6b7280;
+      --pink: #ff4fd8;
+      --green: #00e87b;
+      --red: #ef4444;
+      --orange: #f97316;
+      --purple: #a855f7;
+      --blue: #3b82f6;
+      --teal: #06d6a0;
+      --yellow: #eab308;
+    }
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    
+    /* Splash */
+    #splash {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      transition: opacity 0.4s;
+    }
+    #splash.hidden { opacity: 0; pointer-events: none; }
+    #splash img { max-width: 80%; max-height: 30vh; }
+    #splash .title { font-size: 16px; font-weight: 500; color: var(--text-dim); }
+    
+    /* Header */
+    .header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .header h1 {
+      font-size: 20px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .header-controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .date-range {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      color: var(--text);
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .venue-filter {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      color: var(--text);
+      font-size: 13px;
+    }
+    .refresh-btn {
+      background: var(--pink);
+      border: none;
+      border-radius: 8px;
+      padding: 8px 16px;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    
+    /* Main Content */
+    .main {
+      padding: 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    
+    /* KPI Cards */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .kpi-card {
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid var(--border);
+    }
+    .kpi-label {
+      font-size: 12px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    .kpi-value {
+      font-size: 32px;
+      font-weight: 700;
+    }
+    .kpi-value.green { color: var(--green); }
+    .kpi-value.pink { color: var(--pink); }
+    .kpi-value.blue { color: var(--blue); }
+    .kpi-value.orange { color: var(--orange); }
+    .kpi-change {
+      font-size: 12px;
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .kpi-change.up { color: var(--green); }
+    .kpi-change.down { color: var(--red); }
+    
+    /* Section */
+    .section {
+      background: var(--surface);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+    .section-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-body {
+      padding: 20px;
+    }
+    
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      background: var(--surface2);
+      padding: 4px;
+      border-radius: 8px;
+    }
+    .tab {
+      background: none;
+      border: none;
+      padding: 8px 16px;
+      color: var(--text-dim);
+      font-size: 13px;
+      font-weight: 500;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .tab.active {
+      background: var(--pink);
+      color: white;
+    }
+    
+    /* Chart Container */
+    .chart-container {
+      position: relative;
+      height: 300px;
+    }
+    
+    /* Grid Layouts */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 20px;
+    }
+    
+    /* Data Table */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .data-table th,
+    .data-table td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    .data-table th {
+      font-size: 11px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+    .data-table tr:last-child td {
+      border-bottom: none;
+    }
+    .data-table tr:hover {
+      background: var(--surface2);
+    }
+    .table-venue {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .venue-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    .table-bar {
+      width: 100px;
+      height: 8px;
+      background: var(--surface2);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .table-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+    }
+    
+    /* Product List */
+    .product-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .product-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px;
+      background: var(--surface2);
+      border-radius: 8px;
+    }
+    .product-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .product-emoji {
+      font-size: 24px;
+    }
+    .product-name {
+      font-weight: 500;
+    }
+    .product-qty {
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+    .product-revenue {
+      font-weight: 600;
+      color: var(--green);
+    }
+    
+    /* Marketing Source */
+    .source-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .source-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .source-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    .source-icon.tiktok { background: #1a1a1a; }
+    .source-icon.meta { background: #1877f2; }
+    .source-icon.google { background: #4285f4; }
+    .source-icon.direct { background: var(--purple); }
+    .source-icon.email { background: var(--orange); }
+    .source-info { flex: 1; }
+    .source-name { font-weight: 500; font-size: 14px; }
+    .source-stats { font-size: 12px; color: var(--text-dim); }
+    .source-revenue { text-align: right; }
+    .source-amount { font-weight: 600; color: var(--green); }
+    .source-roi { font-size: 12px; color: var(--text-dim); }
+    
+    /* Budget Section */
+    .budget-item {
+      margin-bottom: 16px;
+    }
+    .budget-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+    .budget-label { font-weight: 500; }
+    .budget-values { color: var(--text-dim); }
+    .budget-bar {
+      height: 12px;
+      background: var(--surface2);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .budget-fill {
+      height: 100%;
+      border-radius: 6px;
+      transition: width 0.3s;
+    }
+    .budget-fill.under { background: var(--green); }
+    .budget-fill.near { background: var(--yellow); }
+    .budget-fill.over { background: var(--red); }
+    
+    /* Footer */
+    .footer {
+      padding: 20px;
+      text-align: center;
+      border-top: 1px solid var(--border);
+      margin-top: 20px;
+    }
+    .footer a {
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 12px;
+      margin: 0 12px;
+    }
+    .footer .copy {
+      margin-top: 8px;
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      .header {
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
+      }
+      .header-controls {
+        flex-wrap: wrap;
+      }
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+      .kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .kpi-value {
+        font-size: 24px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .main { padding: 12px; }
+      .kpi-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+      .kpi-card { padding: 14px; }
+      .kpi-value { font-size: 20px; }
+      .kpi-label { font-size: 11px; }
+      .section { margin-bottom: 16px; }
+      .section-title { font-size: 14px; }
+      .header h1 { font-size: 18px; }
+      .date-range, .venue-filter { width: 100%; }
+      .data-table { font-size: 12px; }
+      .data-table th, .data-table td { padding: 8px 6px; }
+    }
+  </style>
+  <script src="supabase-sync.js"></script>
+</head>
+<body>
+  <a href="https://thelightparkops.com" style="position: absolute; top: 20px; left: 20px; color: #a855f7; text-decoration: none; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 6px; transition: all 0.2s; z-index: 1000;" onmouseover="this.style.color='#06d6a0'" onmouseout="this.style.color='#a855f7'">← Dashboard</a>
+  <!-- Splash -->
+  <div id="splash">
+    <img src="logo.jpg" alt="The Light Park Reports" style="max-width: 80%; max-height: 30vh;">
+    <div class="title" style="margin-top: 16px;">Loading Reports...</div>
+  </div>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <h1>📊 Reports Dashboard</h1>
+    </div>
+    <div class="header-controls">
+      <select class="date-range" id="dateRange" onchange="updateData()">
+        <option value="today">Today</option>
+        <option value="yesterday">Yesterday</option>
+        <option value="week" selected>This Week</option>
+        <option value="month">This Month</option>
+        <option value="season">Full Season</option>
+      </select>
+      <select class="venue-filter" id="venueFilter" onchange="updateData()">
+        <option value="all">All Venues</option>
+        <option value="katy">Katy</option>
+        <option value="spring">Spring</option>
+        <option value="selma">Selma</option>
+        <option value="missions">Missions</option>
+        <option value="arlington">Arlington</option>
+        <option value="frisco">Frisco</option>
+        <option value="roundrock">Round Rock</option>
+        <option value="okc">Oklahoma City</option>
+      </select>
+      <button class="refresh-btn" onclick="updateData()">↻ Refresh</button>
+    </div>
+  </header>
+
+  <main class="main">
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">Total Revenue</div>
+        <div class="kpi-value green" id="kpiRevenue">$847,250</div>
+        <div class="kpi-change up" id="kpiRevenueChange">↑ 12.4% vs last week</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Tickets Sold</div>
+        <div class="kpi-value pink" id="kpiTickets">18,492</div>
+        <div class="kpi-change up" id="kpiTicketsChange">↑ 8.2% vs last week</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">In-Tent Sales</div>
+        <div class="kpi-value blue" id="kpiTent">$42,180</div>
+        <div class="kpi-change up" id="kpiTentChange">↑ 15.7% vs last week</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Avg. Ticket Price</div>
+        <div class="kpi-value orange" id="kpiAvgTicket">$43.50</div>
+        <div class="kpi-change down" id="kpiAvgChange">↓ 2.1% vs last week</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Cars Tonight</div>
+        <div class="kpi-value" id="kpiCars">2,847</div>
+        <div class="kpi-change up">↑ 324 vs last Thu</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Marketing ROI</div>
+        <div class="kpi-value green" id="kpiROI">4.2x</div>
+        <div class="kpi-change up">↑ 0.8x vs last week</div>
+      </div>
+    </div>
+
+    <!-- Revenue Chart -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">📈 Revenue Trend</div>
+        <div class="tabs">
+          <button class="tab active" onclick="setChartView('daily')">Daily</button>
+          <button class="tab" onclick="setChartView('weekly')">Weekly</button>
+          <button class="tab" onclick="setChartView('venue')">By Venue</button>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="chart-container">
+          <canvas id="revenueChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- Venue Breakdown -->
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">📍 Revenue by Venue</div>
+        </div>
+        <div class="section-body" style="padding:0">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Venue</th>
+                <th>Tickets</th>
+                <th>Revenue</th>
+                <th>% of Total</th>
+              </tr>
+            </thead>
+            <tbody id="venueTable">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Marketing Attribution -->
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">📣 Marketing Attribution</div>
+        </div>
+        <div class="section-body">
+          <div class="source-list" id="sourceList">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- Product Sales -->
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">🛍️ Top Products (In-Tent)</div>
+        </div>
+        <div class="section-body">
+          <div class="product-list" id="productList">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Budget Tracking -->
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">💰 Budget vs Actual</div>
+        </div>
+        <div class="section-body" id="budgetSection">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Ticket Types -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">🎟️ Ticket Sales by Type</div>
+      </div>
+      <div class="section-body">
+        <div class="chart-container" style="height:250px">
+          <canvas id="ticketChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <a href="privacy-policy.html">Privacy Policy</a>
+    <a href="terms-of-service.html">Terms of Service</a>
+    <div class="copy">© 2026 The Light Park · Data refreshes every 5 minutes</div>
+  </footer>
+
+  <script>
+    // ========== DATA ==========
+    const venueColors = {
+      katy: '#ff4fd8',
+      spring: '#a855f7',
+      selma: '#3b82f6',
+      missions: '#06d6a0',
+      arlington: '#f97316',
+      frisco: '#eab308',
+      roundrock: '#ef4444',
+      okc: '#06b6d4'
+    };
+
+    const venueData = [
+      { name: 'Katy', tickets: 3245, revenue: 142500, color: venueColors.katy },
+      { name: 'Spring', tickets: 2890, revenue: 128400, color: venueColors.spring },
+      { name: 'Arlington', tickets: 2650, revenue: 118200, color: venueColors.arlington },
+      { name: 'Frisco', tickets: 2420, revenue: 108900, color: venueColors.frisco },
+      { name: 'Round Rock', tickets: 2180, revenue: 98500, color: venueColors.roundrock },
+      { name: 'Selma', tickets: 1920, revenue: 86400, color: venueColors.selma },
+      { name: 'Missions', tickets: 1780, revenue: 80100, color: venueColors.missions },
+      { name: 'Oklahoma City', tickets: 1407, revenue: 63250, color: venueColors.okc },
+    ];
+
+    const marketingSources = [
+      { name: 'TikTok', icon: '🎵', class: 'tiktok', spend: 9000, revenue: 285000, tickets: 6380 },
+      { name: 'Meta (FB/IG)', icon: '📘', class: 'meta', spend: 5000, revenue: 142000, tickets: 3180 },
+      { name: 'Google Ads', icon: '🔍', class: 'google', spend: 4000, revenue: 98000, tickets: 2195 },
+      { name: 'Email', icon: '📧', class: 'email', spend: 500, revenue: 86500, tickets: 1940 },
+      { name: 'Direct/Organic', icon: '🌐', class: 'direct', spend: 0, revenue: 235750, tickets: 4797 },
+    ];
+
+    const productData = [
+      { name: 'Photo Package', emoji: '📸', qty: 1847, revenue: 27705, price: 15 },
+      { name: 'Hot Cocoa', emoji: '☕', qty: 3240, revenue: 16200, price: 5 },
+      { name: 'Plush Toy', emoji: '🧸', qty: 892, revenue: 17840, price: 20 },
+      { name: 'Light Wand', emoji: '🪄', qty: 1156, revenue: 13872, price: 12 },
+      { name: "S'mores Kit", emoji: '🔥', qty: 1420, revenue: 11360, price: 8 },
+      { name: 'Magic Glasses', emoji: '👓', qty: 980, revenue: 5880, price: 6 },
+    ];
+
+    const budgetData = [
+      { category: 'Marketing', budget: 20000, spent: 18500 },
+      { category: 'Staffing', budget: 45000, spent: 42800 },
+      { category: 'Operations', budget: 15000, spent: 14200 },
+      { category: 'Merchandise', budget: 25000, spent: 19500 },
+      { category: 'Food & Beverage', budget: 12000, spent: 11800 },
+    ];
+
+    // ========== INIT ==========
+    let revenueChart, ticketChart;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => document.getElementById('splash').classList.add('hidden'), 800);
+      initCharts();
+      renderVenueTable();
+      renderSources();
+      renderProducts();
+      renderBudget();
+    });
+
+    // ========== CHARTS ==========
+    function initCharts() {
+      // Revenue Chart
+      const ctx1 = document.getElementById('revenueChart').getContext('2d');
+      revenueChart = new Chart(ctx1, {
+        type: 'line',
+        data: {
+          labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+          datasets: [{
+            label: 'Revenue',
+            data: [95000, 82000, 78000, 125000, 145000, 185000, 137250],
+            borderColor: '#ff4fd8',
+            backgroundColor: 'rgba(255, 79, 216, 0.1)',
+            fill: true,
+            tension: 0.4,
+            pointRadius: 4,
+            pointBackgroundColor: '#ff4fd8'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: { color: '#2a2e3e' },
+              ticks: { 
+                color: '#6b7280',
+                callback: v => '$' + (v/1000) + 'k'
+              }
+            },
+            x: {
+              grid: { display: false },
+              ticks: { color: '#6b7280' }
+            }
+          }
+        }
+      });
+
+      // Ticket Type Chart
+      const ctx2 = document.getElementById('ticketChart').getContext('2d');
+      ticketChart = new Chart(ctx2, {
+        type: 'doughnut',
+        data: {
+          labels: ['General ($35)', 'Peak ($45)', 'VIP ($75)', 'Season Pass', 'Group'],
+          datasets: [{
+            data: [8500, 5200, 1800, 1500, 1492],
+            backgroundColor: ['#ff4fd8', '#a855f7', '#f97316', '#06d6a0', '#3b82f6'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'right',
+              labels: { color: '#f0f0f5', padding: 16 }
+            }
+          }
+        }
+      });
+    }
+
+    function setChartView(view) {
+      document.querySelectorAll('.tabs .tab').forEach(t => t.classList.remove('active'));
+      event.target.classList.add('active');
+      // Update chart based on view (would fetch new data in production)
+    }
+
+    // ========== RENDER FUNCTIONS ==========
+    function renderVenueTable() {
+      const total = venueData.reduce((sum, v) => sum + v.revenue, 0);
+      document.getElementById('venueTable').innerHTML = venueData.map(v => {
+        const pct = ((v.revenue / total) * 100).toFixed(1);
+        return `
+          <tr>
+            <td>
+              <div class="table-venue">
+                <div class="venue-dot" style="background:${v.color}"></div>
+                ${v.name}
+              </div>
+            </td>
+            <td>${v.tickets.toLocaleString()}</td>
+            <td>$${v.revenue.toLocaleString()}</td>
+            <td>
+              <div style="display:flex;align-items:center;gap:8px">
+                <div class="table-bar">
+                  <div class="table-bar-fill" style="width:${pct}%;background:${v.color}"></div>
+                </div>
+                ${pct}%
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderSources() {
+      document.getElementById('sourceList').innerHTML = marketingSources.map(s => {
+        const roi = s.spend > 0 ? (s.revenue / s.spend).toFixed(1) + 'x' : '∞';
+        return `
+          <div class="source-item">
+            <div class="source-icon ${s.class}">${s.icon}</div>
+            <div class="source-info">
+              <div class="source-name">${s.name}</div>
+              <div class="source-stats">${s.tickets.toLocaleString()} tickets · $${s.spend.toLocaleString()} spent</div>
+            </div>
+            <div class="source-revenue">
+              <div class="source-amount">$${s.revenue.toLocaleString()}</div>
+              <div class="source-roi">ROI: ${roi}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderProducts() {
+      document.getElementById('productList').innerHTML = productData.map(p => `
+        <div class="product-item">
+          <div class="product-info">
+            <div class="product-emoji">${p.emoji}</div>
+            <div>
+              <div class="product-name">${p.name}</div>
+              <div class="product-qty">${p.qty.toLocaleString()} sold @ $${p.price}</div>
+            </div>
+          </div>
+          <div class="product-revenue">$${p.revenue.toLocaleString()}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderBudget() {
+      document.getElementById('budgetSection').innerHTML = budgetData.map(b => {
+        const pct = (b.spent / b.budget) * 100;
+        const statusClass = pct > 100 ? 'over' : pct > 90 ? 'near' : 'under';
+        return `
+          <div class="budget-item">
+            <div class="budget-header">
+              <span class="budget-label">${b.category}</span>
+              <span class="budget-values">$${b.spent.toLocaleString()} / $${b.budget.toLocaleString()}</span>
+            </div>
+            <div class="budget-bar">
+              <div class="budget-fill ${statusClass}" style="width:${Math.min(pct, 100)}%"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function updateData() {
+      // In production: Fetch real data based on filters
+      const dateRange = document.getElementById('dateRange').value;
+      const venue = document.getElementById('venueFilter').value;
+      console.log('Updating data for:', dateRange, venue);
+      // Would call API and re-render
+    }
+  </script>
+</body>
+</html>
